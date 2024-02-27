@@ -1,0 +1,7 @@
+Preprocesado -> modelos adversarial para cargarse las estrellas de fondo 
+Segmentación -> máscaras a mano al menos para probar, distintos modelos a probar (pdf Cantorna)
+Clasificación -> 
+Evaluación -> 
+
+Interacción PySpark en el CESGA o en el supercomputador de Barcelona
+Interfaz en Python (o en Angular) al que pasarle una imagen y que haga todo el proceso de pasar a 
