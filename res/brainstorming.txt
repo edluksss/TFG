@@ -4,4 +4,5 @@ Clasificación ->
 Evaluación -> 
 
 Interacción PySpark en el CESGA o en el supercomputador de Barcelona
-Interfaz en Python (o en Angular) al que pasarle una imagen y que haga todo el proceso de pasar a 
+
+ Interfaz en Python (o en Angular) al que pasarle una imagen y que haga todo el proceso de pasar a 

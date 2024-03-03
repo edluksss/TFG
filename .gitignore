@@ -1,4 +1,3 @@
 venv
-res/*.tar
-res/*.zip
+res/zips_recibidos
 .vscode
