@@ -1,0 +1,12 @@
+Para ejecutar en el CESGA en nodo interactivo
+
+compute --cores 8 --mem 24G --gpu
+
+module load cesga/system pytorch/2.0.0-cuda
+
+export CONDA_ENVS_PATH=$STORE/conda/envs
+export CONDA_PKGS_DIRS=$STORE/conda/pkgs
+source activate TFG_env
+
+IP=$(hostname -i | awk '{print $NF}')
+jupyter notebook --ip $IP --no-browser
