@@ -2,8 +2,8 @@ name: TFG_env
 channels:
   - pytorch
   - nvidia
-  - conda-forge
   - anaconda
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
@@ -31,7 +31,7 @@ dependencies:
   - bzip2=1.0.8=h5eee18b_5
   - c-ares=1.19.1=h5eee18b_0
   - ca-certificates=2024.3.11=h06a4308_0
-  - certifi=2024.2.2=py310h06a4308_0
+  - certifi=2024.6.2=py310h06a4308_0
   - cffi=1.16.0=py310h5eee18b_0
   - cfitsio=3.470=h5893167_7
   - charls=2.2.0=h2531618_0
@@ -247,6 +247,7 @@ dependencies:
   - rfc3986-validator=0.1.1=py310h06a4308_0
   - rpds-py=0.10.6=py310hb02cf49_0
   - safetensors=0.4.2=py310ha89cbab_0
+  - scikit-fuzzy=0.4.2=py_1
   - scikit-image=0.19.2=py310hb5077e9_0
   - scikit-learn=1.3.0=py310h1128e8f_1
   - scipy=1.12.0=py310h5f9d8c6_0
@@ -308,4 +309,4 @@ dependencies:
       - smmap==5.0.1
       - tensorboardx==2.6.2.2
       - wandb==0.16.6
-prefix: /mnt/netapp2/Store_uni/home/ulc/cursos/cursob82/conda/envs/TFG_env
+prefix: /mnt/netapp2/Store_uni/home/ulc/co/ela/conda/envs/TFG_env
