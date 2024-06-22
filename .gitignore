@@ -3,3 +3,7 @@ res/zips_recibidos
 .vscode
 test/PNe_segmentation/PNe_segmentation.zip
 cesga
+test/PNe_segmentation/commands.txt
+test/PNe_segmentation/launch_jupyter.sh
+test/PNe_segmentation/train_py
+test/PNe_segmentation/train_sh
