@@ -1,6 +1,6 @@
 name,h,mask
 A13,A13hcg.fits,A13_contour.png
-A14,A14hc.fits,A14_mask.png
+A14,A14hc.fits,A14_mask_correct.png
 A16,A16_Hacc.fits,A16_contour.png
 A18,A18hc.fits,A18_mask.png
 A19,A19hg.fits,A19_mask.png

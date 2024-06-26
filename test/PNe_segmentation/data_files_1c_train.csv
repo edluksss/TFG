@@ -1,6 +1,6 @@
 name,h,mask,complete_tag,simple_tag
 A13,A13hcg.fits,A13_contour.png,E,E
-A14,A14hc.fits,A14_mask.png,P,P
+A14,A14hc.fits,A14_mask_correct.png,P,P
 A16,A16_Hacc.fits,A16_contour.png,R,R
 A18,A18hc.fits,A18_mask.png,E,E
 A19,A19hg.fits,A19_mask.png,E,E
