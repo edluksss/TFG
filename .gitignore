@@ -7,3 +7,4 @@ test/PNe_segmentation/commands.txt
 test/PNe_segmentation/launch_jupyter.sh
 test/PNe_segmentation/train_py
 test/PNe_segmentation/train_sh
+test/PNe_segmentation/historico_notebooks/entrega_03_07_24.zip
