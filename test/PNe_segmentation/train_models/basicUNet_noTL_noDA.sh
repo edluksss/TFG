@@ -2,7 +2,7 @@
 #SBATCH -n 1
 #SBATCH -c 32
 #SBATCH --mem=60G
-#SBATCH --time=02:30:00
+#SBATCH --time=00:10:00
 #SBATCH --gres=gpu:a100:1
 
 echo "Restoring modules"
@@ -14,4 +14,5 @@ export CONDA_ENVS_PATH=$STORE/conda/envs
 export CONDA_PKGS_DIRS=$STORE/conda/pkgs
 source activate TFG_env
 echo "Executing code"
+
 python basicUNet_noTL_noDA.py

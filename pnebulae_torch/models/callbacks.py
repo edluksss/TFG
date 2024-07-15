@@ -1,5 +1,5 @@
 import wandb
-from smp import get_segmentation_masks
+from pnebulae_torch.models.smp import get_segmentation_masks
 import lightning as L
 
 class PrintCallback(L.pytorch.Callback):

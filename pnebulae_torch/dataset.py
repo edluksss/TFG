@@ -7,7 +7,7 @@ from astropy.io import fits
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
-from normalize import TypicalImageNorm
+from pnebulae_torch.normalize import TypicalImageNorm
 
 
 class NebulaeDataset(Dataset):

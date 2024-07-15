@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
 import pandas as pd
 from skimage import morphology
-from pnebulae_torch.aux import plot_all
+from pnebulae_torch.utils import plot_all
 
 
 class MLPClassifier(torch.nn.Module):
