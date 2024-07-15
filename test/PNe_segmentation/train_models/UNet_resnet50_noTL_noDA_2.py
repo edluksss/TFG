@@ -17,6 +17,7 @@ import os
 import pandas as pd
 import lightning as L
 import wandb
+import segmentation_models_pytorch as smp
 
 if __name__ == "__main__":
     ########## CONFIGURACIÓN SCRIPT ##########
@@ -38,9 +39,9 @@ if __name__ == "__main__":
                         # MinMaxNorm,
                         TypicalImageNorm(factor = 1, substract=0),
                         ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
-                        # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
+                        # # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
-                        # ApplyIntensityTransformation(transformation = exposure.equalize_adapthist, concat = True, nbins = 640, kernel_size = 5),
+                        # # ApplyIntensityTransformation(transformation = exposure.equalize_adapthist, concat = True, nbins = 640, kernel_size = 5),
                         ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         transforms.ToTensor(),
@@ -59,11 +60,12 @@ if __name__ == "__main__":
     dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "basicUNet_noTL_noDA"
+    model_name = "UNet_resnet50_noTL_noDA"
     
     BATCH_SIZE = 10
-    num_epochs = 200
-    lr = 1e-6
+    num_epochs = 250
+    lr = 1e-5
+    weights = None
     k = 5
 
     seed_everything(42, workers = True)
@@ -84,7 +86,12 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
         
-        model = basicUNet(input_channels = dataset_train[0][0].shape[0], n_class = 1)
+        model = smp.Unet(
+                        encoder_name = "resnet50",
+                        encoder_weights = weights,
+                        in_channels = dataset_train[0][0].shape[0],
+                        classes = 1
+                        )
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         # model = smpAdapter(model = model, learning_rate=1e-6, threshold=0, current_fold=fold, loss_fn=DiceLoss, scheduler=None)

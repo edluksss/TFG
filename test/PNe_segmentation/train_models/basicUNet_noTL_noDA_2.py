@@ -44,7 +44,7 @@ if __name__ == "__main__":
                         ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         transforms.ToTensor(),
-                        CustomPad(target_size = (512, 512), fill_min=True, tensor_type=torch.Tensor.float)
+                        CustomPad(target_size = (512, 512), fill_min=0, tensor_type=torch.Tensor.float)
                         ])
 
     transform_y = transforms.Compose([
@@ -61,9 +61,9 @@ if __name__ == "__main__":
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
     model_name = "basicUNet_noTL_noDA"
     
-    BATCH_SIZE = 10
+    BATCH_SIZE = 8
     num_epochs = 200
-    lr = 1e-6
+    lr = 1e-5
     k = 5
 
     seed_everything(42, workers = True)

@@ -26,7 +26,7 @@ class smpAdapter(L.LightningModule):
         
         self.stage_step_outputs = {'train': [], 'val': [], 'test': []}
         
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=['model'])
         
     def forward(self, x):
         return self.model(x)
