@@ -36,7 +36,7 @@ if __name__ == "__main__":
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
-                        TypicalImageNorm(factor = 1, substract=0),
+                        TypicalImageNorm(factor = 2, substract=0.5),
                         ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
@@ -59,11 +59,11 @@ if __name__ == "__main__":
     dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "basicUNet_noTL_noDA"
+    model_name = "basicUNet_noTL_noDA_difNorm"
     
     BATCH_SIZE = 10
     num_epochs = 200
-    lr = 1e-6
+    lr = 1e-5
     k = 5
 
     seed_everything(42, workers = True)

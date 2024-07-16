@@ -15,4 +15,4 @@ export CONDA_PKGS_DIRS=$STORE/conda/pkgs
 source activate TFG_env
 echo "Executing code"
 
-python UNet_resnet_noTL_noDA_2.py
+python UNet_resnet50_noTL_noDA_2.py
