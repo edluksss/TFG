@@ -10,3 +10,4 @@ test/PNe_segmentation/train_sh
 test/PNe_segmentation/historico_notebooks/entrega_03_07_24.zip
 test/PNe_segmentation/train_models/api_keys.py
 pnebulae_torch/*/__pycache__/
+__pycache__/
