@@ -3,7 +3,7 @@ from pnebulae_torch.dataset import NebulaeDataset
 from pnebulae_torch.preprocess import ApplyMorphology, ApplyIntensityTransformation, ApplyFilter, CustomPad
 from pnebulae_torch.normalize import TypicalImageNorm
 from pnebulae_torch.models.callbacks import PrintCallback
-from pnebulae_torch.models import basicUNet, smpAdapter
+from pnebulae_torch.models import basicUNet, smpAdapter, ConvNet
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from sklearn.model_selection import KFold
 from torchvision import transforms
@@ -36,20 +36,20 @@ if __name__ == "__main__":
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
-                        TypicalImageNorm(factor = 2, substract=0.5),
-                        ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
+                        TypicalImageNorm(factor = 1, substract=0),
+                        # ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
-                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
+                        # ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
                         # ApplyIntensityTransformation(transformation = exposure.equalize_adapthist, concat = True, nbins = 640, kernel_size = 5),
-                        ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
-                        ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
+                        # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
+                        # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         transforms.ToTensor(),
-                        CustomPad(target_size = (512, 512), fill_min=True, tensor_type=torch.Tensor.float)
+                        CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
                         ])
 
     transform_y = transforms.Compose([
                         transforms.ToTensor(),
-                        CustomPad(target_size = (512, 512), fill = 0, tensor_type=torch.Tensor.int)
+                        CustomPad(target_size = (1984, 1984), fill = 0, tensor_type=torch.Tensor.int)
                         ])
 
     df_train = pd.read_csv("data_files_1c_train.csv")
@@ -59,17 +59,16 @@ if __name__ == "__main__":
     dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "basicUNet_noTL_noDA_difNorm"
+    model_name = "FCCN_simple_transpose"
     
-    BATCH_SIZE = 10
-    num_epochs = 250
-    lr = 1e-5
+    BATCH_SIZE = 18
+    num_epochs = 1000
+    lr = 1e-4
     k = 5
 
     seed_everything(42, workers = True)
     
-    
-    
+    ########## ENTRENAMIENTO MODELO ##########
     # Definimos el K-fold Cross Validator
     kfold = KFold(n_splits=5, shuffle=True, random_state = 42)
     
@@ -84,11 +83,11 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
         
-        model = basicUNet(input_channels = dataset_train[0][0].shape[0], n_class = 1)
+        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=True, separable_conv=False, kernel_size = 3)
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
-        # model = smpAdapter(model = model, learning_rate=1e-6, threshold=0, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
         # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
         # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
         

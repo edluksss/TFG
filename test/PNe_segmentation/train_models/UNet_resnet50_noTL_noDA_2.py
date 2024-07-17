@@ -62,9 +62,9 @@ if __name__ == "__main__":
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
     model_name = "UNet_resnet50_noTL_noDA"
     
-    BATCH_SIZE = 10
-    num_epochs = 250
-    lr = 1e-5
+    BATCH_SIZE = 40
+    num_epochs = 500
+    lr = 1e-4
     weights = None
     k = 5
 
@@ -94,8 +94,8 @@ if __name__ == "__main__":
                         )
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
-        # model = smpAdapter(model = model, learning_rate=1e-6, threshold=0, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=50, cooldown=10, verbose=False)
         # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
         # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
         
