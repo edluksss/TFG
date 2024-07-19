@@ -5,7 +5,6 @@ from pnebulae_torch.normalize import TypicalImageNorm
 from pnebulae_torch.models.callbacks import PrintCallback
 from pnebulae_torch.models import basicUNet, smpAdapter, ConvNet
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
-
 from sklearn.model_selection import KFold
 from torchvision import transforms
 from skimage import morphology, exposure
@@ -34,6 +33,8 @@ if __name__ == "__main__":
     masks_directory = working_directory+"/masks"
     data_directory = working_directory+"/data"
     
+    torch.set_float32_matmul_precision('medium')
+    
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
@@ -59,14 +60,12 @@ if __name__ == "__main__":
     df_test = pd.read_csv("data_files_1c_test.csv")
     dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
     
-    torch.set_float32_matmul_precision('medium')
-    
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_separable"
+    model_name = "FCCN_simple_tanh"
     
-    BATCH_SIZE = 10
-    num_epochs = 1000
-    lr = 1e-3
+    BATCH_SIZE = 32
+    num_epochs = 5000
+    lr = 1e-4
     k = 5
 
     seed_everything(42, workers = True)
@@ -86,13 +85,13 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
         
-        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=True, kernel_size = 3, padding = 'same')
+        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, activation_layer=torch.nn.Tanh, kernel_size = 7, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
-        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
         # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [200, 500], gamma = 0.01, verbose=False)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [100], gamma = 0.1, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
         logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)

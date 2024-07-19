@@ -103,7 +103,7 @@ class NebulaeDataset(Dataset):
             image = t(image)
             mask = t(mask)
         
-        return image, torch.round(mask).int()
+        return image, torch.round(mask)
 
     def __len__(self):
         """

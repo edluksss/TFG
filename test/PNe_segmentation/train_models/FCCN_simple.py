@@ -33,6 +33,8 @@ if __name__ == "__main__":
     masks_directory = working_directory+"/masks"
     data_directory = working_directory+"/data"
     
+    torch.set_float32_matmul_precision('medium')
+    
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
@@ -89,7 +91,7 @@ if __name__ == "__main__":
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
         # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
-        # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [100], gamma = 0.1, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
         logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)

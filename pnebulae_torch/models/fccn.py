@@ -13,27 +13,27 @@ import pandas as pd
 from skimage import morphology
 from pnebulae_torch.utils import plot_all
 
-def conv_layer(in_channels, out_channels, **kwargs):
+def conv_layer(in_channels, out_channels, activation_layer = nn.ReLU, **kwargs):
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, **kwargs),
-        nn.ReLU(inplace=False),
+        activation_layer(),
     )   
     
-def conv_layer_transpose(in_channels, out_channels, **kwargs):
+def conv_layer_transpose(in_channels, out_channels, activation_layer = nn.ReLU, **kwargs):
     return nn.Sequential(
         nn.ConvTranspose2d(in_channels, out_channels, **kwargs),
-        nn.ReLU(inplace=False),
+        activation_layer(),
     )   
     
-def conv_layer_separable(in_channels, out_channels, **kwargs):
+def conv_layer_separable(in_channels, out_channels, activation_layer = nn.ReLU, **kwargs):
     return nn.Sequential(
         separable_nn.SeparableConv2d(in_channels, out_channels, **kwargs),
-        nn.ReLU(inplace=False),
+        activation_layer(),
     )
     
 class ConvNet(torch.nn.Module):
     
-    def __init__(self, input_dim, hidden_dims, output_dim, transposeConv = False, separable_conv = False, **kwargs):
+    def __init__(self, input_dim, hidden_dims, output_dim, transposeConv = False, separable_conv = False, activation_layer = nn.ReLU, **kwargs):
         super().__init__()
         
         if separable_conv:
@@ -41,15 +41,15 @@ class ConvNet(torch.nn.Module):
         else:
             conv_layer_fnc = conv_layer
             
-        self.layer1_conv = conv_layer_fnc(input_dim, hidden_dims[0], **kwargs)
+        self.layer1_conv = conv_layer_fnc(input_dim, hidden_dims[0], activation_layer, **kwargs)
         
-        self.hidden_layers = nn.ModuleList([conv_layer_fnc(hidden_dims[i], hidden_dims[i+1], **kwargs) for i in range(len(hidden_dims)-1)])
+        self.hidden_layers = nn.ModuleList([conv_layer_fnc(hidden_dims[i], hidden_dims[i+1], activation_layer, **kwargs) for i in range(len(hidden_dims)-1)])
         
         self.hidden_layers_deconv = None
         
         if transposeConv:
             # Capas de deconvolución para aumentar la resolución de las características
-            self.hidden_layers_deconv = nn.ModuleList([conv_layer_transpose(hidden_dims[i], hidden_dims[i-1], **kwargs) for i in range(len(hidden_dims)-1, 0, -1)])
+            self.hidden_layers_deconv = nn.ModuleList([conv_layer_transpose(hidden_dims[i], hidden_dims[i-1], activation_layer, **kwargs) for i in range(len(hidden_dims)-1, 0, -1)])
         
             self.layer1_deconv = nn.ConvTranspose2d(hidden_dims[0], input_dim, **kwargs)
         

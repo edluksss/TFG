@@ -33,6 +33,8 @@ if __name__ == "__main__":
     masks_directory = working_directory+"/masks"
     data_directory = working_directory+"/data"
     
+    torch.set_float32_matmul_precision('medium')
+    
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
@@ -63,7 +65,7 @@ if __name__ == "__main__":
     
     BATCH_SIZE = 18
     num_epochs = 1000
-    lr = 1e-4
+    lr = 1e-3
     k = 5
 
     seed_everything(42, workers = True)

@@ -2,6 +2,7 @@ import lightning as L
 import segmentation_models_pytorch as smp
 import torch
 import torch.optim as optim
+import inspect
 
 def get_segmentation_masks(outputs, threshold=0.5):
     probs = torch.sigmoid(outputs)
@@ -15,7 +16,12 @@ class smpAdapter(L.LightningModule):
         self.model = model
         
         self.learning_rate = learning_rate
-        self.loss_fn = loss_fn(smp.losses.BINARY_MODE, from_logits=True)
+        
+        if "mode" not in inspect.signature(loss_fn).parameters:
+            self.loss_fn = loss_fn()
+        else:
+            self.loss_fn = loss_fn(smp.losses.BINARY_MODE, from_logits=True)
+            
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.kwargs = kwargs

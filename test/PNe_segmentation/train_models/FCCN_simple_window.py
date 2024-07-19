@@ -4,6 +4,7 @@ from pnebulae_torch.preprocess import ApplyMorphology, ApplyIntensityTransformat
 from pnebulae_torch.normalize import TypicalImageNorm
 from pnebulae_torch.models.callbacks import PrintCallback
 from pnebulae_torch.models import basicUNet, smpAdapter, ConvNet
+from pnebulae_torch.utils import DivideWindowsSubset
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from sklearn.model_selection import KFold
 from torchvision import transforms
@@ -17,6 +18,7 @@ import os
 import pandas as pd
 import lightning as L
 import wandb
+import inspect
 
 if __name__ == "__main__":
     ########## CONFIGURACIÓN SCRIPT ##########
@@ -33,6 +35,24 @@ if __name__ == "__main__":
     masks_directory = working_directory+"/masks"
     data_directory = working_directory+"/data"
     
+    torch.set_float32_matmul_precision('medium')
+    
+    ####### CONFIGURACIÓN ENTRENAMIENTO #######
+    model_name = "FCCN_simple_window_dice_relu"
+    
+    BATCH_SIZE = 64
+    num_epochs = 2000
+    lr = 1e-4
+    k = 5
+    
+    loss_fn = DiceLoss
+    activation_layer=torch.nn.ReLU
+    
+    if "mode" in inspect.signature(loss_fn).parameters:
+        type_fnc = torch.Tensor.int
+    else:
+        type_fnc = torch.Tensor.float
+        
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
@@ -44,12 +64,13 @@ if __name__ == "__main__":
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         transforms.ToTensor(),
-                        CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
+                        # CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
                         ])
 
     transform_y = transforms.Compose([
                         transforms.ToTensor(),
-                        CustomPad(target_size = (1984, 1984), fill = 0, tensor_type=torch.Tensor.int)
+                        transforms.Lambda(lambda x: type_fnc(x)),
+                        # CustomPad(target_size = (1984, 1984), fill = 0, tensor_type=torch.Tensor.int)
                         ])
 
     df_train = pd.read_csv("data_files_1c_train.csv")
@@ -57,14 +78,6 @@ if __name__ == "__main__":
     
     df_test = pd.read_csv("data_files_1c_test.csv")
     dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
-    
-    ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple"
-    
-    BATCH_SIZE = 32
-    num_epochs = 1000
-    lr = 1e-4
-    k = 5
 
     seed_everything(42, workers = True)
     
@@ -83,13 +96,13 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
         
-        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, kernel_size = 3, padding = 'same')
+        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 5, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
-        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
-        # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
-        # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
+        # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=loss_fn, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
+        # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=loss_fn, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
         logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)
@@ -107,7 +120,10 @@ if __name__ == "__main__":
         # Creamos nuestros propios Subsets de PyTorch aplicando a cada conjunto la transformacion deseada
         train_subset = torch.utils.data.Subset(dataset_train, train_ids)
         val_subset = torch.utils.data.Subset(dataset_train, val_ids)
-
+        
+        train_subset = DivideWindowsSubset(train_subset, window_shape = 512, fill_min = True)
+        val_subset = DivideWindowsSubset(val_subset, window_shape = 512, fill_min = True)
+        
         # Definimos un data loader por cada conjunto de datos que vamos a utilizar.
         trainloader = torch.utils.data.DataLoader(
                                 train_subset,
@@ -137,3 +153,4 @@ if __name__ == "__main__":
 
         logger_wandb.finalize("success")
         wandb.finish() 
+        break
