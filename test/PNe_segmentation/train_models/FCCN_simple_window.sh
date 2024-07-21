@@ -2,7 +2,7 @@
 #SBATCH -n 1
 #SBATCH -c 32
 #SBATCH --mem=20G
-#SBATCH --time=01:00:00
+#SBATCH --time=05:00:00
 #SBATCH --gres=gpu:a100:1
 
 echo "Restoring modules"

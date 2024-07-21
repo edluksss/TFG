@@ -38,11 +38,13 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('medium')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu"
+    model_name = "FCCN_simple_window_dice_relu_512_ks9"
     
-    BATCH_SIZE = 64
+    BATCH_SIZE = 256
     num_epochs = 2000
     lr = 1e-4
+    window_shape = 512
+    
     k = 5
     
     loss_fn = DiceLoss
@@ -96,7 +98,7 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
         
-        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 5, padding = 'same')
+        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 9, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
@@ -121,8 +123,9 @@ if __name__ == "__main__":
         train_subset = torch.utils.data.Subset(dataset_train, train_ids)
         val_subset = torch.utils.data.Subset(dataset_train, val_ids)
         
-        train_subset = DivideWindowsSubset(train_subset, window_shape = 992, fill_min = True)
-        val_subset = DivideWindowsSubset(val_subset, window_shape = 992, fill_min = True)
+        if window_shape is not None:
+            train_subset = DivideWindowsSubset(train_subset, window_shape = window_shape, fill_min = True)
+            val_subset = DivideWindowsSubset(val_subset, window_shape = window_shape, fill_min = True)
         
         # Definimos un data loader por cada conjunto de datos que vamos a utilizar.
         trainloader = torch.utils.data.DataLoader(
@@ -138,18 +141,13 @@ if __name__ == "__main__":
 
         logger_wandb.experiment.unwatch(model)
 
-        # trainer.test(model, testloader) 
-        
-        df_test = pd.read_csv("data_files_1c_test.csv")
-        dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
-
         testloader = torch.utils.data.DataLoader(
                                 dataset_test,
                                 batch_size=BATCH_SIZE, num_workers=8, shuffle=False, persistent_workers=True)
         
         # Creamos un nuevo entrenador con una sola GPU para la fase de prueba
-        trainer_test = L.Trainer(devices = 1, strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger=logger_wandb, callbacks=callbacks)
-        trainer_test.test(model, testloader)
+        # trainer_test = L.Trainer(devices = 1, strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger=logger_wandb, callbacks=callbacks)
+        # trainer_test.test(model, testloader)
 
         logger_wandb.finalize("success")
         wandb.finish() 

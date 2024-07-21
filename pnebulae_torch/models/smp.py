@@ -21,6 +21,7 @@ class smpAdapter(L.LightningModule):
             self.loss_fn = loss_fn()
         else:
             self.loss_fn = loss_fn(smp.losses.BINARY_MODE, from_logits=True)
+            # self.loss_fn = loss_fn(smp.losses.BINARY_MODE, from_logits=True, ignore_index=-1)
             
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -42,6 +43,9 @@ class smpAdapter(L.LightningModule):
         y_logits = self(x)
         
         loss = self.loss_fn(y_logits, y)
+        
+        # Descomentar si se utiliza el parametro ignore_index=-1
+        # y[y == -1] = 0
         
         y_hat = get_segmentation_masks(y_logits, self.threshold)
         

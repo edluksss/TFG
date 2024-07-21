@@ -16,7 +16,7 @@ class PrintCallback(L.pytorch.Callback):
         # which corresponds to our model predictions in this case
         try:
             # Let's log 20 sample image predictions from first batch
-            if (trainer.current_epoch % 25 == 0 and trainer.current_epoch != 0) or trainer.current_epoch == trainer.max_epochs-1:
+            if (trainer.current_epoch % 100 == 0 and trainer.current_epoch != 0) or trainer.current_epoch == trainer.max_epochs-1:
                 if batch_idx == 0:
                     n = 4
                     x, y = batch

@@ -1,7 +1,7 @@
 from api_keys import set_wandb_api_key
 from pnebulae_torch.dataset import NebulaeDataset
 from pnebulae_torch.preprocess import ApplyMorphology, ApplyIntensityTransformation, ApplyFilter, CustomPad
-from pnebulae_torch.normalize import TypicalImageNorm, MinMaxImageNorm
+from pnebulae_torch.normalize import TypicalImageNorm
 from pnebulae_torch.models.callbacks import PrintCallback
 from pnebulae_torch.models import basicUNet, smpAdapter, ConvNet
 from pnebulae_torch.utils import DivideWindowsSubset
@@ -25,6 +25,7 @@ if __name__ == "__main__":
     # Establecemos la clave de la API de W&B
     set_wandb_api_key()
     ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
+    os.environ["WANDB_CACHE_DIR"] = os.environ["STORE"] + "wandb_cache"
     
     working_directory = "../"
     
@@ -38,17 +39,19 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('medium')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512"
+    model_name = "FCCN_simple_window_dice_relu"
     
-    BATCH_SIZE = 128
+    BATCH_SIZE = 32
     num_epochs = 20000
-    lr = 1e-5
-    window_shape = 512
+    lr = 1e-4
+    window_shape = 256
+    
+    checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/" + "best_model-epoch=9793-0.ckpt"
     
     k = 5
     
     loss_fn = DiceLoss
-    activation_layer=torch.nn.ReLU
+    activation_layer=torch.nn.Tanh
     
     if "mode" in inspect.signature(loss_fn).parameters:
         type_fnc = torch.Tensor.int
@@ -58,8 +61,7 @@ if __name__ == "__main__":
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
-                        # TypicalImageNorm(factor = 1, substract=0),
-                        MinMaxImageNorm(min = -88.9933, max=125873.7500),
+                        TypicalImageNorm(factor = 1, substract=0),
                         # ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         # ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
@@ -86,7 +88,7 @@ if __name__ == "__main__":
     
     ########## ENTRENAMIENTO MODELO ##########
     # Definimos el K-fold Cross Validator
-    kfold = KFold(n_splits=k, shuffle=True, random_state = 42)
+    kfold = KFold(n_splits=5, shuffle=True, random_state = 42)
     
     for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         checkpoint_callback = ModelCheckpoint(
@@ -101,21 +103,25 @@ if __name__ == "__main__":
         
         model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 3, padding = 'same')
         
+        checkpoint = torch.load(checkpoint_path)
+        
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
         # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=loss_fn, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
         # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=loss_fn, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
         
+        model.load_state_dict(checkpoint['state_dict'])
+            
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
-        logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)
+        logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb, id = "peo45dky", resume = True)
         logger_wandb.experiment.config.update({"model_name": model_name})
 
         # log gradients, parameter histogram and model topology
         logger_wandb.watch(model, log="all")
 
         trainer = L.Trainer(strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger= logger_wandb, callbacks=callbacks)
-
+        
         # Imprimimos el fold del que van a mostrarse los resultados
         print('--------------------------------')
         print(f"Model info:\n\t- Batch Size: {BATCH_SIZE}\n\t- GPUs on use: {torch.cuda.device_count()}")
@@ -138,7 +144,7 @@ if __name__ == "__main__":
                                 batch_size=BATCH_SIZE, num_workers=8, shuffle=False, persistent_workers=True)
         
         # Entrenamos el modelo, extrayendo los resultados y guardandolos en la variable result, y evaluamos en el conjunto de test.
-        trainer.fit(model, trainloader, valloader) 
+        trainer.fit(model, trainloader, valloader, ckpt_path = checkpoint_path) 
 
         logger_wandb.experiment.unwatch(model)
 
