@@ -19,6 +19,7 @@ import pandas as pd
 import lightning as L
 import wandb
 import inspect
+import time
 
 if __name__ == "__main__":
     ########## CONFIGURACIÓN SCRIPT ##########
@@ -35,14 +36,14 @@ if __name__ == "__main__":
     masks_directory = working_directory+"/masks"
     data_directory = working_directory+"/data"
     
-    torch.set_float32_matmul_precision('medium')
+    torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512"
+    model_name = "FCCN_simple_window_dice_relu_512_orig_eq"
     
     BATCH_SIZE = 128
-    num_epochs = 20000
-    lr = 1e-5
+    num_epochs = 5000
+    lr = 1e-4
     window_shape = 512
     
     k = 5
@@ -58,11 +59,11 @@ if __name__ == "__main__":
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
-                        # TypicalImageNorm(factor = 1, substract=0),
-                        MinMaxImageNorm(min = -88.9933, max=125873.7500),
+                        TypicalImageNorm(factor = 1, substract=0),
+                        # MinMaxImageNorm(min = -88.9933, max=125873.7500),
                         # ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
-                        # ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
+                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
                         # ApplyIntensityTransformation(transformation = exposure.equalize_adapthist, concat = True, nbins = 640, kernel_size = 5),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 
     transform_y = transforms.Compose([
                         transforms.ToTensor(),
-                        transforms.Lambda(lambda x: type_fnc(x)),
+                        transforms.Lambda(lambda x: type_fnc(x.round())),
                         # CustomPad(target_size = (1984, 1984), fill = 0, tensor_type=torch.Tensor.int)
                         ])
 
@@ -97,14 +98,20 @@ if __name__ == "__main__":
             mode='min',
         )
         
-        callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
+        checkpoint_callback_last = ModelCheckpoint(
+            monitor=None,
+            dirpath=os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}",
+            filename='last_model',
+        )
         
-        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 3, padding = 'same')
+        callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback, checkpoint_callback_last]
+        
+        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 3, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
-        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
-        # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=loss_fn, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=500, cooldown=150, verbose=False)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.StepLR, step_size = 2000, gamma = 0.1, verbose=False)
         # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=loss_fn, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
@@ -114,7 +121,7 @@ if __name__ == "__main__":
         # log gradients, parameter histogram and model topology
         logger_wandb.watch(model, log="all")
 
-        trainer = L.Trainer(strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger= logger_wandb, callbacks=callbacks)
+        trainer = L.Trainer(strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=2, logger= logger_wandb, callbacks=callbacks)
 
         # Imprimimos el fold del que van a mostrarse los resultados
         print('--------------------------------')
@@ -151,5 +158,6 @@ if __name__ == "__main__":
         # trainer_test.test(model, testloader)
 
         logger_wandb.finalize("success")
-        wandb.finish() 
-        break
+        wandb.finish()
+        
+        time.sleep(30)

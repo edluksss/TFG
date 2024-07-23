@@ -58,8 +58,8 @@ class DivideWindowsSubset(Dataset):
             y_pad = transforms.functional.pad(y, (pad_left, pad_top, pad_right, pad_bottom), fill = 0)
             # y_pad = transforms.functional.pad(y, (pad_left, pad_top, pad_right, pad_bottom), fill = -1)
 
-            x_unfold = x_pad.unfold(1, window_shape, window_shape).unfold(2, window_shape, window_shape).reshape(-1, x_pad.shape[0], window_shape, window_shape)
-            y_unfold = y_pad.unfold(1, window_shape, window_shape).unfold(2, window_shape, window_shape).reshape(-1, y_pad.shape[0], window_shape, window_shape)
+            x_unfold = x_pad.unfold(1, window_shape, window_shape).unfold(2, window_shape, window_shape).reshape(x_pad.shape[0], -1, window_shape, window_shape).permute(1, 0, 2, 3)
+            y_unfold = y_pad.unfold(1, window_shape, window_shape).unfold(2, window_shape, window_shape).reshape(y_pad.shape[0], -1, window_shape, window_shape).permute(1, 0, 2, 3)
             
             self.x_windows.append(x_unfold)
             self.y_windows.append(y_unfold)

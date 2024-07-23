@@ -1,9 +1,10 @@
 from api_keys import set_wandb_api_key
 from pnebulae_torch.dataset import NebulaeDataset
 from pnebulae_torch.preprocess import ApplyMorphology, ApplyIntensityTransformation, ApplyFilter, CustomPad
-from pnebulae_torch.normalize import TypicalImageNorm
+from pnebulae_torch.normalize import TypicalImageNorm, MinMaxImageNorm
 from pnebulae_torch.models.callbacks import PrintCallback
-from pnebulae_torch.models import basicUNet, smpAdapter
+from pnebulae_torch.models import basicUNet, smpAdapter, ConvNet
+from pnebulae_torch.utils import DivideWindowsSubset
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from sklearn.model_selection import KFold
 from torchvision import transforms
@@ -17,6 +18,8 @@ import os
 import pandas as pd
 import lightning as L
 import wandb
+import inspect
+import time
 
 if __name__ == "__main__":
     ########## CONFIGURACIÓN SCRIPT ##########
@@ -33,23 +36,45 @@ if __name__ == "__main__":
     masks_directory = working_directory+"/masks"
     data_directory = working_directory+"/data"
     
+    torch.set_float32_matmul_precision('high')
+    
+    ####### CONFIGURACIÓN ENTRENAMIENTO #######
+    model_name = "UNet_simple_window_dice_relu_512_orig_eq"
+    
+    BATCH_SIZE = 32
+    num_epochs = 1000
+    lr = 1e-5
+    window_shape = 512
+    
+    k = 5
+    
+    loss_fn = DiceLoss
+    activation_layer=torch.nn.ReLU
+    
+    if "mode" in inspect.signature(loss_fn).parameters:
+        type_fnc = torch.Tensor.int
+    else:
+        type_fnc = torch.Tensor.float
+        
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
-                        TypicalImageNorm(factor = 2, substract=0.5),
-                        ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
+                        TypicalImageNorm(factor = 1, substract=0),
+                        # MinMaxImageNorm(min = -88.9933, max=125873.7500),
+                        # ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
                         # ApplyIntensityTransformation(transformation = exposure.equalize_adapthist, concat = True, nbins = 640, kernel_size = 5),
-                        ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
-                        ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
+                        # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
+                        # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         transforms.ToTensor(),
-                        CustomPad(target_size = (512, 512), fill_min=True, tensor_type=torch.Tensor.float)
+                        # CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
                         ])
 
     transform_y = transforms.Compose([
                         transforms.ToTensor(),
-                        CustomPad(target_size = (512, 512), fill = 0, tensor_type=torch.Tensor.int)
+                        transforms.Lambda(lambda x: type_fnc(x.round())),
+                        # CustomPad(target_size = (1984, 1984), fill = 0, tensor_type=torch.Tensor.int)
                         ])
 
     df_train = pd.read_csv("data_files_1c_train.csv")
@@ -57,21 +82,12 @@ if __name__ == "__main__":
     
     df_test = pd.read_csv("data_files_1c_test.csv")
     dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
-    
-    ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "basicUNet_noTL_noDA_difNorm"
-    
-    BATCH_SIZE = 10
-    num_epochs = 250
-    lr = 1e-5
-    k = 5
 
     seed_everything(42, workers = True)
     
-    
-    
+    ########## ENTRENAMIENTO MODELO ##########
     # Definimos el K-fold Cross Validator
-    kfold = KFold(n_splits=5, shuffle=True, random_state = 42)
+    kfold = KFold(n_splits=k, shuffle=True, random_state = 42)
     
     for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         checkpoint_callback = ModelCheckpoint(
@@ -82,15 +98,21 @@ if __name__ == "__main__":
             mode='min',
         )
         
-        callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
+        checkpoint_callback_last = ModelCheckpoint(
+            monitor=None,
+            dirpath=os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}",
+            filename='last_model',
+        )
+        
+        callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback, checkpoint_callback_last]
         
         model = basicUNet(input_channels = dataset_train[0][0].shape[0], n_class = 1)
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
-        # model = smpAdapter(model = model, learning_rate=1e-6, threshold=0, current_fold=fold, loss_fn=DiceLoss, scheduler=None)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=DiceLoss, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=20, cooldown=5, verbose=False)
-        # model = UNETModel(model = model, learning_rate=5e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.StepLR, step_size = 15, gamma = 0.1, verbose=False)
-        # model = UNETModel(model = model, learning_rate=1e-6, current_fold=fold, loss_fn=DiceLoss, scheduler=optim.lr_scheduler.MultiStepLR, milestones = [91], gamma = 0.1, verbose=False)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=500, cooldown=150, verbose=False)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.StepLR, step_size = 2000, gamma = 0.1, verbose=False)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [300, 700], gamma = 0.05, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
         logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)
@@ -99,7 +121,7 @@ if __name__ == "__main__":
         # log gradients, parameter histogram and model topology
         logger_wandb.watch(model, log="all")
 
-        trainer = L.Trainer(strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger= logger_wandb, callbacks=callbacks)
+        trainer = L.Trainer(strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=2, logger= logger_wandb, callbacks=callbacks)
 
         # Imprimimos el fold del que van a mostrarse los resultados
         print('--------------------------------')
@@ -108,7 +130,11 @@ if __name__ == "__main__":
         # Creamos nuestros propios Subsets de PyTorch aplicando a cada conjunto la transformacion deseada
         train_subset = torch.utils.data.Subset(dataset_train, train_ids)
         val_subset = torch.utils.data.Subset(dataset_train, val_ids)
-
+        
+        if window_shape is not None:
+            train_subset = DivideWindowsSubset(train_subset, window_shape = window_shape, fill_min = True)
+            val_subset = DivideWindowsSubset(val_subset, window_shape = window_shape, fill_min = True)
+        
         # Definimos un data loader por cada conjunto de datos que vamos a utilizar.
         trainloader = torch.utils.data.DataLoader(
                                 train_subset,
@@ -123,18 +149,15 @@ if __name__ == "__main__":
 
         logger_wandb.experiment.unwatch(model)
 
-        # trainer.test(model, testloader) 
-        
-        df_test = pd.read_csv("data_files_1c_test.csv")
-        dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
-
         testloader = torch.utils.data.DataLoader(
                                 dataset_test,
                                 batch_size=BATCH_SIZE, num_workers=8, shuffle=False, persistent_workers=True)
         
         # Creamos un nuevo entrenador con una sola GPU para la fase de prueba
-        trainer_test = L.Trainer(devices = 1, strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger=logger_wandb, callbacks=callbacks)
-        trainer_test.test(model, testloader)
+        # trainer_test = L.Trainer(devices = 1, strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger=logger_wandb, callbacks=callbacks)
+        # trainer_test.test(model, testloader)
 
         logger_wandb.finalize("success")
-        wandb.finish() 
+        wandb.finish()
+        
+        time.sleep(30)

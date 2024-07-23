@@ -38,7 +38,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('medium')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_separable_window_dice_relu_512"
+    model_name = "FCCN_separable_window_dice_relu_512_orig_eq"
     
     BATCH_SIZE = 128
     num_epochs = 20000
@@ -59,9 +59,10 @@ if __name__ == "__main__":
     transform_x = transforms.Compose([
                         # MinMaxNorm,
                         TypicalImageNorm(factor = 1, substract=0),
+                        # MinMaxImageNorm(min = -88.9933, max=125873.7500),
                         # ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
-                        # ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
+                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 4096),
                         # ApplyIntensityTransformation(transformation = exposure.equalize_adapthist, concat = True, nbins = 640, kernel_size = 5),
                         # ApplyMorphology(operation = morphology.area_opening, concat = True, area_threshold = 200, connectivity = 1),
                         # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 
     transform_y = transforms.Compose([
                         transforms.ToTensor(),
-                        transforms.Lambda(lambda x: type_fnc(x)),
+                        transforms.Lambda(lambda x: type_fnc(x.round())),
                         # CustomPad(target_size = (1984, 1984), fill = 0, tensor_type=torch.Tensor.int)
                         ])
 
@@ -98,7 +99,7 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback]
         
-        model = ConvNet(input_dim = 1, hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=True, activation_layer=activation_layer, kernel_size = 3, padding = 'same')
+        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=True, activation_layer=activation_layer, kernel_size = 3, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
