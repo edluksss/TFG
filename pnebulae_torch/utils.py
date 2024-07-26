@@ -40,7 +40,7 @@ class DivideWindowsSubset(Dataset):
             
             if fill_min:
                 fill = x.min().item()
-                
+            
             if x.shape[1] % window_shape != 0:
                 pad_height = window_shape - (x.shape[1] % window_shape)
 

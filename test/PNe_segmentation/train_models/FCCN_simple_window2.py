@@ -40,7 +40,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512_cut2_ks3"
+    model_name = "FCCN_simple_window_dice_relu_512_cut2.5_ks3"
     
     BATCH_SIZE = 128
     num_epochs = 2000
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
-                        CutValues(factor = 2),
+                        CutValues(factor = 2.5),
                         TypicalImageNorm(factor = 1, substract=0),
                         # MinMaxImageNorm(min = -88.9933, max=125873.7500),
                         # ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),

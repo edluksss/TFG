@@ -231,3 +231,36 @@ class CustomPad():
                 return self.tensor_type(transforms.functional.pad(image, (pad_left, pad_top, pad_right, pad_bottom), fill = self.fill))
             else:
                 return transforms.functional.pad(image, (pad_left, pad_top, pad_right, pad_bottom), fill = self.fill)
+            
+class CutValues:
+    """
+    Una clase para cortar los valores que se consideren atípicos de una imagen.
+    """
+    def __init__(self, factor = 10):
+        """ Construye el objeto CutValues con el factor multiplicativo de la desviación estandar, que va a definir el umbral para considerar valores atípicos.
+
+        Args:
+            factor (int, optional): factor multiplicativo de la desviación estandar. Defaults to 10.
+        """
+        
+        self.factor = factor
+        
+    def __call__(self, x):
+        """Corta los valores que se consideren atípicos de la imagen dada.
+
+        Args:
+            x (np.array): Imagen de entrada
+
+        Returns:
+            np.array: Imagen después de cortar los valores atípicos.
+        """
+        x_mean = x.mean()
+        x_std = x.std()
+
+        x[x > x_mean + self.factor * x_std] = x_mean + self.factor * x_std
+        x[x < x_mean - self.factor * x_std] = x_mean - self.factor * x_std
+        
+        return x
+    def __repr__(self):
+        
+        return self.__class__.__name__ + '()'

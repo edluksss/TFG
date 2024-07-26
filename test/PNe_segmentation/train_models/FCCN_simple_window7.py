@@ -40,7 +40,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512_cut2_ks3"
+    model_name = "FCCN_simple_window_dice_relu_512_cut2hist_ks5_bigger"
     
     BATCH_SIZE = 128
     num_epochs = 2000
@@ -71,7 +71,7 @@ if __name__ == "__main__":
                         # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         # transforms.ToTensor(),
                         # CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
-                        # ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = False, nbins = 256),
+                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = False, nbins = 256),
                         transforms.ToTensor(),
                         ])
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback, checkpoint_callback_last]
         
-        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 3, padding = 'same')
+        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 12, 16, 12, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 5, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)

@@ -42,7 +42,7 @@ if __name__ == "__main__":
     model_name = "UNet_simple_window_dice_relu_512_orig_eq"
     
     BATCH_SIZE = 32
-    num_epochs = 1000
+    num_epochs = 1400
     lr = 1e-5
     window_shape = 512
     
@@ -112,7 +112,7 @@ if __name__ == "__main__":
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=500, cooldown=150, verbose=False)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.StepLR, step_size = 2000, gamma = 0.1, verbose=False)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [300, 700], gamma = 0.05, verbose=False)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [300, 700], gamma = 0.5, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
         logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)
@@ -160,4 +160,8 @@ if __name__ == "__main__":
         logger_wandb.finalize("success")
         wandb.finish()
         
+        del model
+        del trainer
+        
+        torch.cuda.empty_cache()
         time.sleep(30)

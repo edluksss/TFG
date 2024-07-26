@@ -40,7 +40,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512_cut2_ks3"
+    model_name = "FCCN_simple_window_dice_relu_512_cut2_hist_ks3"
     
     BATCH_SIZE = 128
     num_epochs = 2000
@@ -71,7 +71,7 @@ if __name__ == "__main__":
                         # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         # transforms.ToTensor(),
                         # CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
-                        # ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = False, nbins = 256),
+                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 256),
                         transforms.ToTensor(),
                         ])
 
