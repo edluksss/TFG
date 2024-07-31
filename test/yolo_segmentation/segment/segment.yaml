@@ -4,5 +4,5 @@ test: images/test
 
 nc: 1
 
-names: ['planetary_nebula']
-colors: [[255, 255, 255]]
+names:
+  0: planetary_nebula
