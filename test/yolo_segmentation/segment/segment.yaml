@@ -1,0 +1,5 @@
+train: images/train
+test: images/test
+
+names: ['planetary_nebula']
+colors: [255, 255, 255, 255]
