@@ -13,6 +13,7 @@ from scipy import ndimage
 from lightning.pytorch import seed_everything
 from segmentation_models_pytorch.losses import DiceLoss
 from lightning.pytorch.loggers import WandbLogger
+import numpy as np
 import torch
 import os
 import pandas as pd
@@ -40,11 +41,11 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512_cut2hist_ks7"
+    model_name = "FCCN_simple_window_dice_relu_512_cut2_hist_ks7_DAextense"
     
-    BATCH_SIZE = 128
-    num_epochs = 2000
-    lr = 1e-4
+    BATCH_SIZE = 130
+    num_epochs = 1000
+    lr = 1e-3
     window_shape = 512
     
     k = 5
@@ -71,7 +72,7 @@ if __name__ == "__main__":
                         # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         # transforms.ToTensor(),
                         # CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
-                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = False, nbins = 256),
+                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 256),
                         transforms.ToTensor(),
                         ])
 
@@ -80,12 +81,41 @@ if __name__ == "__main__":
                         transforms.Lambda(lambda x: type_fnc(x.round())),
                         # CustomPad(target_size = (1984, 1984), fill = 0, tensor_type=torch.Tensor.int)
                         ])
+    
+    transform_x_aug = transforms.Compose([
+                        CutValues(factor = 2),
+                        TypicalImageNorm(factor = 1, substract=0),
+                        
+                        transforms.ToPILImage(),
+                        
+                        transforms.RandomHorizontalFlip(),  # Voltear la imagen horizontalmente con una probabilidad del 50%
+                        transforms.RandomVerticalFlip(),
+                        transforms.RandomRotation(180),  # Rotar la imagen aleatoriamente en un rango de -20 a 20 grados
+                        transforms.RandomAffine(degrees=0, translate=(0.15, 0.15), scale=(0.75, 1.5)),  # Traslación aleatoria del 10%
+                        
+                        transforms.Lambda(lambda x: np.array(x)),
+                        
+                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 256),
+                        transforms.ToTensor(),
+                        ])
 
+    transform_y_aug = transforms.Compose([
+                        transforms.ToPILImage(),
+                        transforms.RandomHorizontalFlip(),  # Voltear la imagen horizontalmente con una probabilidad del 50%
+                        transforms.RandomVerticalFlip(),
+                        transforms.RandomRotation(180),  # Rotar la imagen aleatoriamente en un rango de -20 a 20 grados
+                        transforms.RandomAffine(degrees=0, translate=(0.15, 0.15), scale=(0.75, 1.5)),  # Traslación aleatoria del 10%
+                        
+                        transforms.ToTensor(),
+                        transforms.Lambda(lambda x: torch.Tensor.int(x.round())),
+                        ])
+    
     df_train = pd.read_csv("data_files_1c_train.csv")
     dataset_train = NebulaeDataset(data_directory, masks_directory, df_train, transform = (transform_x, transform_y))
+
+    dataset_train_aug = NebulaeDataset(data_directory, masks_directory, df_train, transform = (transform_x_aug, transform_y_aug))
     
-    df_test = pd.read_csv("data_files_1c_test.csv")
-    dataset_test = NebulaeDataset(data_directory, masks_directory, df_test, transform = (transform_x, transform_y))
+    df_train_ext = pd.read_csv("data_files_1c_train_da.csv")
 
     seed_everything(42, workers = True)
     
@@ -113,10 +143,10 @@ if __name__ == "__main__":
         model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 7, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
+        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=500, cooldown=150, verbose=False)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.StepLR, step_size = 2000, gamma = 0.1, verbose=False)
-        # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [1000, 4000], gamma = 0.1, verbose=False)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [100, 800], gamma = 0.1, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
         logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)
@@ -133,6 +163,19 @@ if __name__ == "__main__":
 
         # Creamos nuestros propios Subsets de PyTorch aplicando a cada conjunto la transformacion deseada
         train_subset = torch.utils.data.Subset(dataset_train, train_ids)
+        
+        indices_ext = list(df_train[df_train['name'].isin(df_train_ext['name'])].dropna().index)
+        for i in val_ids:
+            indices_ext.remove(i) if i in indices_ext else None
+            
+        train_subset_ext = torch.utils.data.Subset(dataset_train_aug, indices_ext)
+        train_subset_ext2 = torch.utils.data.Subset(dataset_train_aug, indices_ext)
+        
+        train_subset = torch.utils.data.ConcatDataset([train_subset, train_subset_ext, train_subset_ext2])
+        
+        # train_subset_aug = torch.utils.data.Subset(dataset_train_aug, train_ids)
+        # train_subset = torch.utils.data.ConcatDataset([train_subset, train_subset_aug, train_subset_ext, train_subset_ext2])
+        
         val_subset = torch.utils.data.Subset(dataset_train, val_ids)
         
         if window_shape is not None:

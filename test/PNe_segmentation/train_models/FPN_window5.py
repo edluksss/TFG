@@ -13,6 +13,7 @@ from scipy import ndimage
 from lightning.pytorch import seed_everything
 from segmentation_models_pytorch.losses import DiceLoss
 from lightning.pytorch.loggers import WandbLogger
+import segmentation_models_pytorch as smp
 import torch
 import os
 import pandas as pd
@@ -40,9 +41,9 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512_cut2hist_ks5_morelayers"
+    model_name = "FPN_mobilenet_v2_512_cut2_hist_DO0.1"
     
-    BATCH_SIZE = 128
+    BATCH_SIZE = 64
     num_epochs = 2000
     lr = 1e-4
     window_shape = 512
@@ -71,7 +72,7 @@ if __name__ == "__main__":
                         # ApplyFilter(filter = ndimage.gaussian_filter, concat = True, sigma = 5),
                         # transforms.ToTensor(),
                         # CustomPad(target_size = (1984, 1984), fill_min=True, tensor_type=torch.Tensor.float)
-                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = False, nbins = 256),
+                        ApplyIntensityTransformation(transformation = exposure.equalize_hist, concat = True, nbins = 256),
                         transforms.ToTensor(),
                         ])
 
@@ -110,7 +111,7 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback, checkpoint_callback_last]
         
-        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [4, 8, 12, 12, 8, 4], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 5, padding = 'same')
+        model = smp.FPN(encoder_name="mobilenet_v2", encoder_weights="imagenet", decoder_dropout=0.1, in_channels=dataset_train[0][0].shape[0], classes=1)
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)

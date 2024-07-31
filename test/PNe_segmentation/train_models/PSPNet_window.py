@@ -13,6 +13,7 @@ from scipy import ndimage
 from lightning.pytorch import seed_everything
 from segmentation_models_pytorch.losses import DiceLoss
 from lightning.pytorch.loggers import WandbLogger
+import segmentation_models_pytorch as smp
 import torch
 import os
 import pandas as pd
@@ -40,9 +41,9 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512_cut3_ks3"
+    model_name = "FPN_mobilenet_v2_512_cut2_noTL"
     
-    BATCH_SIZE = 128
+    BATCH_SIZE = 64
     num_epochs = 2000
     lr = 1e-4
     window_shape = 512
@@ -60,7 +61,7 @@ if __name__ == "__main__":
     ############# CARGA DATASET #############
     transform_x = transforms.Compose([
                         # MinMaxNorm,
-                        CutValues(factor = 3),
+                        CutValues(factor = 2),
                         TypicalImageNorm(factor = 1, substract=0),
                         # MinMaxImageNorm(min = -88.9933, max=125873.7500),
                         # ApplyMorphology(operation = morphology.binary_opening, concat = True, footprint = morphology.disk(2)),
@@ -110,7 +111,7 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback, checkpoint_callback_last]
         
-        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 3, padding = 'same')
+        model = smp.PSPNet(encoder_name="mobilenet_v2", encoder_weights=None, in_channels=dataset_train[0][0].shape[0], classes=1, psp_dropout=0)
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)

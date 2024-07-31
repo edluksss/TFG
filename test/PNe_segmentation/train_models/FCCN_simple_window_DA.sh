@@ -2,7 +2,7 @@
 #SBATCH -n 1
 #SBATCH -c 32
 #SBATCH --mem=20G
-#SBATCH --time=12:00:00
+#SBATCH --time=06:00:00
 #SBATCH --gres=gpu:a100:1
 
 echo "Restoring modules"
@@ -15,4 +15,4 @@ export CONDA_PKGS_DIRS=$STORE/conda/pkgs
 source activate TFG_env
 echo "Executing code"
 
-python FCCN_simple_window8.py
+python FCCN_simple_window_DA.py
