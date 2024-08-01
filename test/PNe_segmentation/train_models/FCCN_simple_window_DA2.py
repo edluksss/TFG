@@ -124,6 +124,9 @@ if __name__ == "__main__":
     kfold = KFold(n_splits=k, shuffle=True, random_state = 42)
     
     for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
+        if fold != 4:
+            continue
+        
         checkpoint_callback = ModelCheckpoint(
             monitor='val_loss',
             dirpath=os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}",
