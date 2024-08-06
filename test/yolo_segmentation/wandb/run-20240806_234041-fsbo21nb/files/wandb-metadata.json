@@ -1,0 +1,367 @@
+{
+    "os": "Linux-4.18.0-305.3.1.el8_4.x86_64-x86_64-with-glibc2.28",
+    "python": "3.10.12",
+    "heartbeatAt": "2024-08-06T21:40:41.957263",
+    "startedAt": "2024-08-06T21:40:41.362706",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "custom_train_yolo-jvsc-f1f676fc-a6c5-498c-a866-0d235793673b1bc7b62e-fdbd-488e-8696-d42032a9809e.ipynb",
+    "codePathLocal": null,
+    "root": "/mnt/netapp2/Home_FT2/home/ulc/co/ela/TFG",
+    "git": {
+        "remote": "https://github.com/edluksss/TFG.git",
+        "commit": "21e0d99e5b94e828136906daab6a7099e5deda88"
+    },
+    "email": "eduardo.lucas.antolin@udc.es",
+    "host": "c206-2",
+    "username": "ulccoela",
+    "executable": "/mnt/netapp2/Store_uni/home/ulc/co/ela/conda/envs/TFG_env/bin/python",
+    "cpu_count": 64,
+    "cpu_count_logical": 64,
+    "cpu_freq": {
+        "current": 2.8006718750000013,
+        "min": 800.0,
+        "max": 3400.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.799,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.811,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.811,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.789,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.81,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.799,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.809,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.79,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.811,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.789,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.79,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.79,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.81,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.792,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.791,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.807,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.791,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.791,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.807,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 97.93059539794922,
+            "used": 5.3583221435546875
+        }
+    },
+    "gpu": "Tesla T4",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "Tesla T4",
+            "memory_total": 16106127360
+        }
+    ],
+    "memory": {
+        "total": 251.2610855102539
+    }
+}
