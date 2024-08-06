@@ -1,0 +1,368 @@
+{
+    "os": "Linux-4.18.0-305.3.1.el8_4.x86_64-x86_64-with-glibc2.28",
+    "python": "3.10.12",
+    "heartbeatAt": "2024-08-06T22:51:39.141220",
+    "startedAt": "2024-08-06T22:51:38.569834",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/mnt/netapp2/Home_FT2/home/ulc/co/ela/TFG/test/yolo_segmentation/yolo_train.py",
+    "codePathLocal": "yolo_train.py",
+    "codePath": "test/yolo_segmentation/yolo_train.py",
+    "git": {
+        "remote": "https://github.com/edluksss/TFG.git",
+        "commit": "e81e4ddd5b0a73d5d296acc8495ef35c76423db3"
+    },
+    "email": "eduardo.lucas.antolin@udc.es",
+    "root": "/mnt/netapp2/Home_FT2/home/ulc/co/ela/TFG",
+    "host": "c210-13",
+    "username": "ulccoela",
+    "executable": "/mnt/netapp2/Store_uni/home/ulc/co/ela/conda/envs/TFG_env/bin/python",
+    "cpu_count": 64,
+    "cpu_count_logical": 64,
+    "cpu_freq": {
+        "current": 2.8004687500000016,
+        "min": 800.0,
+        "max": 3400.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.799,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.789,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.799,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.79,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.811,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.789,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.809,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.809,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.81,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.809,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.79,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.791,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.799,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.791,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.808,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.791,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2.8,
+            "min": 800.0,
+            "max": 3400.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 97.93059539794922,
+            "used": 5.201610565185547
+        }
+    },
+    "gpu": "NVIDIA A100-PCIE-40GB",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA A100-PCIE-40GB",
+            "memory_total": 42949672960
+        }
+    ],
+    "memory": {
+        "total": 251.2610855102539
+    }
+}
