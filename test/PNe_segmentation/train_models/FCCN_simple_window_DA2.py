@@ -45,7 +45,7 @@ if __name__ == "__main__":
     
     BATCH_SIZE = 224
     num_epochs = 1000
-    lr = 1e-3
+    lr = 1e-4
     window_shape = 512
     
     k = 5
@@ -126,7 +126,6 @@ if __name__ == "__main__":
     for fold, (train_ids, val_ids) in enumerate(kfold.split(dataset_train)):
         if fold != 4:
             continue
-        
         checkpoint_callback = ModelCheckpoint(
             monitor='val_loss',
             dirpath=os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}",
@@ -149,7 +148,7 @@ if __name__ == "__main__":
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=500, cooldown=150, verbose=False)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.StepLR, step_size = 2000, gamma = 0.1, verbose=False)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [100,800], gamma = 0.1, verbose=False)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [800], gamma = 0.1, verbose=False)
         
         ruta_logs_wandb = os.environ["STORE"] + "/TFG/logs_wandb/"
         logger_wandb = WandbLogger(project="segmentation_TFG", log_model = False, name=model_name, save_dir=ruta_logs_wandb)

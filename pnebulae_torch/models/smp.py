@@ -3,6 +3,8 @@ import segmentation_models_pytorch as smp
 import torch
 import torch.optim as optim
 import inspect
+import skimage.morphology as morphology
+import numpy as np
 
 def get_segmentation_masks(outputs, threshold=0.5):
     probs = torch.sigmoid(outputs)
@@ -11,7 +13,7 @@ def get_segmentation_masks(outputs, threshold=0.5):
 
 class smpAdapter(L.LightningModule):
     
-    def __init__(self, model, learning_rate = 0.0001, loss_fn = smp.losses.DiceLoss, optimizer = optim.Adam, scheduler = None, threshold = 0.5, current_fold = 0, **kwargs):
+    def __init__(self, model, learning_rate = 0.0001, loss_fn = smp.losses.DiceLoss, optimizer = optim.Adam, scheduler = None, threshold = 0.5, current_fold = 0, postprocess = False, **kwargs):
         super().__init__()
         self.model = model
         
@@ -26,7 +28,7 @@ class smpAdapter(L.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.kwargs = kwargs
-        
+        self.postprocess = postprocess
         self.threshold = threshold
     
         self.current_fold = current_fold
@@ -48,7 +50,7 @@ class smpAdapter(L.LightningModule):
         # y[y == -1] = 0
         
         y_hat = get_segmentation_masks(y_logits, self.threshold)
-        
+            
         tp, fp, fn, tn = smp.metrics.get_stats(y_hat.long(), y.long(), mode="binary")
         
         self.stage_step_outputs[stage].append({"loss": loss, "tp": tp, "fp": fp, "fn": fn, "tn": tn})

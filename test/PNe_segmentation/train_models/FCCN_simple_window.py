@@ -40,7 +40,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FCCN_simple_window_dice_relu_512_cut2_hist_biggernet_ks7"
+    model_name = "FCCN_final_window_dice_relu_512_cut2_hist_ks7"
     
     BATCH_SIZE = 128
     num_epochs = 750
@@ -110,10 +110,10 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback, checkpoint_callback_last]
         
-        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [16, 12, 8, 4, 8, 12, 16], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 7, padding = 'same')
+        model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 7, padding = 'same')
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
-        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
+        model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None, postprocess=True)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau, mode='min', factor=0.1, patience=500, cooldown=150, verbose=False)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.StepLR, step_size = 2000, gamma = 0.1, verbose=False)
         # model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=torch.optim.lr_scheduler.MultiStepLR, milestones = [1000, 4000], gamma = 0.1, verbose=False)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         
         # Creamos un nuevo entrenador con una sola GPU para la fase de prueba
         # trainer_test = L.Trainer(devices = 1, strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger=logger_wandb, callbacks=callbacks)
-        # trainer_test.test(model, testloader)
+        # trainer_test.test(model, valloader)
 
         logger_wandb.finalize("success")
         wandb.finish()
