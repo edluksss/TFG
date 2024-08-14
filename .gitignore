@@ -14,3 +14,4 @@ test/yolo_segmentation/wandb/*
 test/yolo_segmentation/YOLOv8PNeSegm/*
 __pycache__/
 slurm*
+test/yolo_segmentation/yolo_train*

@@ -3,7 +3,7 @@ checks()
 
 hub.login('71454859f9a2ce11ea390ba04b99fac877ea55f8f7')
 
-model = YOLO('https://hub.ultralytics.com/models/vQ75fdGqtesSNdYp1G2u')
+model = YOLO('https://hub.ultralytics.com/models/U0lnGBe0RzGEPDcDzosk')
 results = model.train()
 
 # import os
