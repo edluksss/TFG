@@ -1,0 +1,15 @@
+train: images/train
+val: images/val
+test: images/test
+
+nc: 8
+
+names:
+  0: Elliptical (E)
+  1: Point_simmetrical (P)
+  2: Round (R)
+  3: No_Classify (NC)
+  4: Bipolar (B)
+  5: Stelar (S)
+  6: Gaussian (G)
+  7: Quadrupolar (Q)
