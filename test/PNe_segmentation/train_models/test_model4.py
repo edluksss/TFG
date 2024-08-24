@@ -42,7 +42,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('medium')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "UNet_mobilenet_v2_cut2_hist_noTL_DAtotalextense"
+    model_name = "FPN_mobilenet_v2_512_cut2_hist_noTL"
     
     BATCH_SIZE = 128
     num_epochs = 750
@@ -110,12 +110,18 @@ if __name__ == "__main__":
         
         # model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 7, padding = 'same')
         
-        model = smp.Unet(
-                        encoder_name = "mobilenet_v2",
-                        encoder_weights = weights,
-                        in_channels = dataset_train[0][0].shape[0],
-                        classes = 1
-                        )
+        # model = smp.Unet(
+        #                 encoder_name = "mobilenet_v2",
+        #                 encoder_weights = weights,
+        #                 in_channels = dataset_train[0][0].shape[0],
+        #                 classes = 1
+        #                 )
+        
+        model = smp.FPN(encoder_name="mobilenet_v2", 
+                        encoder_weights="imagenet", 
+                        decoder_dropout=0, 
+                        in_channels=dataset_train[0][0].shape[0], 
+                        classes=1)
         
         checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/"
         files_checkpoint_path = [f for f in os.listdir(checkpoint_path) if re.match(f"last_model_fold{fold}", f)]

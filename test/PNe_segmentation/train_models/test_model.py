@@ -42,7 +42,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('medium')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "UNet_mobilenet_v2_cut2_hist_noTL_noDA"
+    model_name = "FPN_mobilenet_v2_512_cut2_hist_DAtotalextense_DO_0.1"
     
     BATCH_SIZE = 128
     num_epochs = 750
@@ -110,16 +110,34 @@ if __name__ == "__main__":
         
         # model = ConvNet(input_dim = dataset_train[0][0].shape[0], hidden_dims = [8, 8, 8, 8, 8], output_dim = 1, transposeConv=False, separable_conv=False, activation_layer=activation_layer, kernel_size = 7, padding = 'same')
         
-        model = smp.Unet(
-                        encoder_name = "mobilenet_v2",
-                        encoder_weights = weights,
-                        in_channels = dataset_train[0][0].shape[0],
-                        classes = 1
-                        )
+        # model = smp.Unet(
+        #                 encoder_name = "mobilenet_v2",
+        #                 encoder_weights = weights,
+        #                 in_channels = dataset_train[0][0].shape[0],
+        #                 classes = 1
+        #                 )
+        
+        model = smp.FPN(encoder_name="mobilenet_v2", 
+                        encoder_weights="imagenet", 
+                        decoder_dropout=0.1, 
+                        in_channels=dataset_train[0][0].shape[0], 
+                        classes=1)
         
         checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/"
         files_checkpoint_path = [f for f in os.listdir(checkpoint_path) if re.match(f"last_model_fold{fold}", f)]
         checkpoint_path = checkpoint_path + files_checkpoint_path[-1]
+
+        # if fold == 0:
+        #     checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/last_model_fold0-v1.ckpt"
+        # elif fold == 1:
+        #     checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/last_model_fold1-v1.ckpt"
+        # elif fold == 2:
+        #     checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/last_model_fold2-v1.ckpt"
+        # elif fold == 3:
+        #     checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/last_model_fold3.ckpt"
+        # elif fold == 4:
+        #     checkpoint_path = os.environ["STORE"] + f"/TFG/model_checkpoints/{model_name}/last_model_fold4.ckpt"
+                          
         checkpoint = torch.load(checkpoint_path)
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
@@ -137,7 +155,7 @@ if __name__ == "__main__":
         # log gradients, parameter histogram and model topology
         logger_wandb.watch(model, log="all")
 
-        trainer = L.Trainer(strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger= logger_wandb, callbacks=callbacks)
+        trainer = L.Trainer(devices = [0], strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=1, logger= logger_wandb, callbacks=callbacks)
         
         # Imprimimos el fold del que van a mostrarse los resultados
         print('--------------------------------')

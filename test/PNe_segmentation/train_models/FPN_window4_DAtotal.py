@@ -42,7 +42,7 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('high')
     
     ####### CONFIGURACIÓN ENTRENAMIENTO #######
-    model_name = "FPN_mobilenet_v2_512_cut2_hist_DAtotalextense"
+    model_name = "FPN_mobilenet_v2_512_cut2_hist_DAtotalextense_DO_0.1"
     
     BATCH_SIZE = 64
     num_epochs = 1000
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         
         callbacks = [PrintCallback(), LearningRateMonitor(logging_interval='epoch'), checkpoint_callback, checkpoint_callback_last]
         
-        model = smp.FPN(encoder_name="mobilenet_v2", encoder_weights="imagenet", decoder_dropout=0, in_channels=dataset_train[0][0].shape[0], classes=1)
+        model = smp.FPN(encoder_name="mobilenet_v2", encoder_weights="imagenet", decoder_dropout=0.1, in_channels=dataset_train[0][0].shape[0], classes=1)
         
         # Definimos el modelo con los pesos inicializados aleatoriamente (sin preentrenar)
         model = smpAdapter(model = model, learning_rate=lr, threshold=0.5, current_fold=fold, loss_fn=loss_fn, scheduler=None)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         # log gradients, parameter histogram and model topology
         logger_wandb.watch(model, log="all")
 
-        trainer = L.Trainer(strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=2, logger= logger_wandb, callbacks=callbacks)
+        trainer = L.Trainer(devices = [0,1], strategy='auto', max_epochs=num_epochs, accelerator='cuda', log_every_n_steps=2, logger= logger_wandb, callbacks=callbacks)
 
         # Imprimimos el fold del que van a mostrarse los resultados
         print('--------------------------------')

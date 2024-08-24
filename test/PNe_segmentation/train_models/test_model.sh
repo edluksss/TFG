@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH -n 1
-#SBATCH -c 32
+#SBATCH -c 60
 #SBATCH --mem=64G
-#SBATCH --time=02:00:00
-#SBATCH --gres=gpu:a100:1
+#SBATCH --time=00:30:00
+#SBATCH --gres=gpu:a100:5
 
 echo "Restoring modules"
 module restore
